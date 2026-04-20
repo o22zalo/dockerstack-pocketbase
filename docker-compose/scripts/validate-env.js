@@ -184,6 +184,9 @@ if ((env.CONSUL_FIREBASE_ENABLE || "false") === "true") {
   checkOptional("CONSUL_STANDBY_ALLOW_API_READONLY", "allow GET/HEAD /api/* on standby", (v) =>
     isBool(v) ? null : "must be true|false"
   );
+  checkOptional("CONSUL_TAKEOVER_ON_JOIN", "new node có thể preempt lease khi vừa join", (v) =>
+    isBool(v) ? null : "must be true|false"
+  );
 }
 
 // 4) Files required by cloudflared mounts

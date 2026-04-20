@@ -38,6 +38,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   DOTENVRTDB_URL: ${{ secrets.DOTENVRTDB_URL }}
   STOP_RUNNER_ID: "${{ github.run_id }}-${{ github.run_attempt }}"
+  CONSUL_NODE_ID: "${{ github.run_id }}-${{ github.run_attempt }}"
   STOP_LISTENER_ENABLED: "true"
 
 jobs:

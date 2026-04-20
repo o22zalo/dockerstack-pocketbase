@@ -30,6 +30,7 @@ Luồng request:
 | `CONSUL_FIREBASE_SSE_ENABLE` | `true` | Bật realtime listener SSE |
 | `CONSUL_LOST_LEASE_EXIT` | `false` | Mất lease thì exit process (hard fencing) |
 | `CONSUL_STANDBY_ALLOW_API_READONLY` | `true` | Cho standby phục vụ GET/HEAD `/api/*` |
+| `CONSUL_TAKEOVER_ON_JOIN` | `false` | Node mới join sẽ preempt lease ngay khi start |
 
 ## Quy tắc hoạt động
 
@@ -45,6 +46,11 @@ Luồng request:
 - Nếu không giữ lease: role = `standby`.
   - Chỉ cho phép `GET`, `HEAD` với path `/api` hoặc `/api/*`.
   - Các request còn lại trả `503` với mã `standby_readonly`.
+
+### 2.1) Node mới join có tự làm leader không?
+
+- Mặc định (`CONSUL_TAKEOVER_ON_JOIN=false`): **không**. Node mới sẽ chỉ thành writer khi lease hiện tại hết hạn hoặc lease rỗng.
+- Nếu bật `CONSUL_TAKEOVER_ON_JOIN=true`: node mới sẽ cố preempt lease ngay lúc start. Node cũ sẽ mất lease và chuyển standby (hoặc thoát process nếu bật `CONSUL_LOST_LEASE_EXIT=true`).
 
 ### 3) Lost lease
 

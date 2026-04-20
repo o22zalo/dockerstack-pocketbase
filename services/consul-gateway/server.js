@@ -15,6 +15,7 @@ const LEASE_POLL_MS = Number(process.env.CONSUL_LEASE_POLL_MS || 10000);
 const SSE_ENABLE = toBool(process.env.CONSUL_FIREBASE_SSE_ENABLE, true);
 const LOST_LEASE_EXIT = toBool(process.env.CONSUL_LOST_LEASE_EXIT, false);
 const STANDBY_ALLOW_API_READONLY = toBool(process.env.CONSUL_STANDBY_ALLOW_API_READONLY, true);
+const TAKEOVER_ON_JOIN = toBool(process.env.CONSUL_TAKEOVER_ON_JOIN, false);
 
 const READ_METHODS = new Set(['GET', 'HEAD']);
 const upstreamBase = new URL(UPSTREAM);
@@ -29,7 +30,8 @@ const leaseManager = new FirebaseLeaseManager({
   leaseTtlMs: LEASE_TTL_MS,
   renewIntervalMs: LEASE_RENEW_MS,
   pollIntervalMs: LEASE_POLL_MS,
-  listenSse: SSE_ENABLE
+  listenSse: SSE_ENABLE,
+  takeoverOnJoin: TAKEOVER_ON_JOIN
 });
 
 leaseManager.on('warn', (msg) => console.warn(`[consul] ${msg}`));
