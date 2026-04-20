@@ -14,6 +14,23 @@ function normalizeFirebaseUrl(url) {
   if (!raw.includes('.json')) {
     throw new Error('CONSUL_FIREBASE_URL phải là URL Realtime Database endpoint có hậu tố .json');
   }
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== 'https:') {
+      throw new Error('CONSUL_FIREBASE_URL phải dùng https://');
+    }
+    if ((parsed.search || '').includes('.json')) {
+      throw new Error('CONSUL_FIREBASE_URL có dấu hiệu bị ghép sai (query đang chứa .json path).');
+    }
+    if ((parsed.search || '').includes('/')) {
+      throw new Error('CONSUL_FIREBASE_URL có dấu hiệu ghép sai path trong query string.');
+    }
+  } catch (err) {
+    if (err instanceof TypeError) {
+      throw new Error('CONSUL_FIREBASE_URL không phải URL hợp lệ.');
+    }
+    throw err;
+  }
   return raw;
 }
 
@@ -55,7 +72,12 @@ class FirebaseLeaseManager extends EventEmitter {
       this.emitRole(true, 'CONSUL_FIREBASE_ENABLE=false');
       return;
     }
-    await this.refreshLease('start');
+    try {
+      await this.refreshLease('start');
+    } catch (err) {
+      this.emit('warn', `[lease][start] ${err.message}. tạm chạy standby và retry theo chu kỳ.`);
+      this.emitRole(false, 'start failed');
+    }
     this._renewTimer = setInterval(() => {
       this.refreshLease('renew-tick').catch((err) => this.emit('warn', `[lease][renew] ${err.message}`));
     }, this.renewIntervalMs);
@@ -141,7 +163,8 @@ class FirebaseLeaseManager extends EventEmitter {
       });
       if (res.status === 412) return false;
       if (!res.ok) {
-        throw new Error(`HTTP ${res.status} khi ghi lease`);
+        const text = await res.text();
+        throw new Error(`HTTP ${res.status} khi ghi lease: ${(text || '').slice(0, 300)}`);
       }
       return true;
     } finally {
