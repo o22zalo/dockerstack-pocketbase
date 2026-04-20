@@ -91,7 +91,12 @@ function isValidDomain(v) {
 function isValidHttpsJsonUrl(v) {
   try {
     const u = new URL(v);
-    return u.protocol === "https:" && u.pathname.endsWith(".json");
+    if (!(u.protocol === "https:" && u.pathname.endsWith(".json"))) return false;
+    // Catch common bad interpolation:
+    // https://.../env.json?auth=.../demo-consul-lease.json?auth=...
+    if ((u.search || "").includes(".json")) return false;
+    if ((u.search || "").includes("/")) return false;
+    return true;
   } catch {
     return false;
   }

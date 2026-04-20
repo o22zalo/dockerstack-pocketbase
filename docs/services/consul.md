@@ -112,6 +112,20 @@ Checklist:
 - Secret/token trong URL còn hiệu lực.
 - Node clock không lệch quá nhiều.
 
+### Lỗi 1.1: `HTTP 400 khi ghi lease`
+
+Nguyên nhân hay gặp:
+- URL bị ghép sai do dùng biến base đã chứa sẵn `...json?auth=...` rồi lại nối thêm path.
+
+Ví dụ sai:
+- `https://.../env.json?auth=xxx/demo-consul-lease.json?auth=xxx`
+
+Ví dụ đúng:
+- `https://...-default-rtdb.asia-southeast1.firebasedatabase.app/demo-consul-lease.json?auth=xxx`
+
+Khuyến nghị:
+- Dùng biến base chỉ gồm domain (`DOTENVRTDB_BASE_URL`) rồi nối path `.json` sau cùng.
+
 ### Lỗi 2: Role nhảy liên tục writer/standby
 
 Checklist:
