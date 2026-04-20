@@ -217,7 +217,7 @@ services:
     user: "0:0"
     volumes:
       - ${DOCKER_VOLUMES_ROOT:-./.docker-volumes}/tailscale/var-lib:/var/lib/tailscale
-      - ./tailscale:/workspace/tailscale:ro
+      - ./tailscale:/workspace/tailscale
     networks: [app_net]
     restart: unless-stopped
 
@@ -243,7 +243,7 @@ services:
     user: "0:0"
     volumes:
       - ${DOCKER_VOLUMES_ROOT:-./.docker-volumes}/tailscale/var-lib:/var/lib/tailscale
-      - ./tailscale:/workspace/tailscale:ro
+      - ./tailscale:/workspace/tailscale
     networks: [app_net]
     restart: unless-stopped
 
