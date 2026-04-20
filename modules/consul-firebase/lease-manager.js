@@ -37,6 +37,7 @@ class FirebaseLeaseManager extends EventEmitter {
     this.pollIntervalMs = Number(opts.pollIntervalMs || 10000);
     this.listenSse = toBool(opts.listenSse, true);
     this.requestTimeoutMs = Number(opts.requestTimeoutMs || 10000);
+    this.takeoverOnJoin = toBool(opts.takeoverOnJoin, false);
 
     this.isWriter = !this.enabled;
     this.currentLease = null;
@@ -155,7 +156,8 @@ class FirebaseLeaseManager extends EventEmitter {
     this.currentLease = data;
     this.currentEtag = etag;
 
-    if (!this.canTakeOver(data, nowMs)) {
+    const allowPreempt = reason === 'start' && this.takeoverOnJoin;
+    if (!this.canTakeOver(data, nowMs) && !allowPreempt) {
       this.emitRole(false, `${reason}: lease đang thuộc owner khác`);
       return;
     }
@@ -169,7 +171,7 @@ class FirebaseLeaseManager extends EventEmitter {
 
     this.currentLease = payload;
     this.lastRenewedAt = nowMs;
-    this.emitRole(true, `${reason}: lease renewed`);
+    this.emitRole(true, allowPreempt ? `${reason}: preempted lease on join` : `${reason}: lease renewed`);
   }
 
   async observeLease(reason) {
