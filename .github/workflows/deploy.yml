@@ -2,12 +2,37 @@
 # Deploys the modular Docker Compose stack via dc.sh.
 # Supports both ubuntu-latest and windows-latest runners.
 
-name: dockerstack-pocketbase
-
+name: dockerstack-s3proxy
 on:
   workflow_dispatch:
-  # schedule:
-  #   - cron: "*/58 * * * *"
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "3 0 * * *" # 07:03 ICT
+    - cron: "3 1 * * *" # 08:03 ICT
+    - cron: "3 2 * * *" # 09:03 ICT
+    - cron: "3 3 * * *" # 10:03 ICT
+    - cron: "3 4 * * *" # 11:03 ICT
+    - cron: "3 5 * * *" # 12:03 ICT
+    - cron: "3 6 * * *" # 13:03 ICT
+    - cron: "3 7 * * *" # 14:03 ICT
+    - cron: "3 8 * * *" # 15:03 ICT
+    - cron: "3 9 * * *" # 16:03 ICT
+    - cron: "3 10 * * *" # 17:03 ICT
+    - cron: "3 11 * * *" # 18:03 ICT
+    - cron: "3 12 * * *" # 19:03 ICT
+    - cron: "3 13 * * *" # 20:03 ICT
+    - cron: "3 14 * * *" # 21:03 ICT
+    - cron: "3 15 * * *" # 22:03 ICT
+    - cron: "3 16 * * *" # 23:03 ICT
+    - cron: "3 17 * * *" # 00:03 ICT
+    - cron: "3 18 * * *" # 01:03 ICT
+    - cron: "3 19 * * *" # 02:03 ICT
+    - cron: "3 20 * * *" # 03:03 ICT
+    - cron: "3 21 * * *" # 04:03 ICT
+    - cron: "3 22 * * *" # 05:03 ICT
+    - cron: "3 23 * * *" # 06:03 ICT
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -22,92 +47,59 @@ jobs:
     permissions:
       actions: write
     if: >-
-      github.repository == 'o861dnss-a11y/dockerstack-pocketbase' ||
-      github.repository == 'onghau/dockerstack-omniroute' ||
-      github.repository == 'odhgateway-ai/dockerstack-pocketbase'
-
+      (github.event_name == 'workflow_dispatch')
+      ||
+      (github.event_name == 'push' && github.repository == 'o861dnss-a11y/dockerstack-pocketbase')
+      ||
+      (github.event_name == 'push' && github.repository == 'o861cloudflare/dockerstack-s3proxy-2')
+      || 
+      (github.event_name == 'schedule' && github.event.schedule == '3 0 * * *' && github.repository == 'hoaihoa981/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 1 * * *' && github.repository == 'hoaihoa981/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 2 * * *' && github.repository == 'hoaihoa981/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 3 * * *' && github.repository == 'hoaihoa981/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 4 * * *' && github.repository == 'hoaihoa981/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 5 * * *' && github.repository == 'hoaihoa981/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 6 * * *' && github.repository == 'hoaihoa981/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 7 * * *' && github.repository == 'hoaihoa981/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 8 * * *' && github.repository == 'hoaihoa981/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 9 * * *' && github.repository == 'hoaihoa981/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 10 * * *' && github.repository == 'hoaihoa981/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 11 * * *' && github.repository == 'hoaihoa981/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 12 * * *' && github.repository == 'hauo8627/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 13 * * *' && github.repository == 'hauo8627/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 14 * * *' && github.repository == 'hauo8627/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 15 * * *' && github.repository == 'hauo8627/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 16 * * *' && github.repository == 'hauo8627/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 17 * * *' && github.repository == 'hauo8627/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 18 * * *' && github.repository == 'hauo8627/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 19 * * *' && github.repository == 'hauo8627/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 20 * * *' && github.repository == 'hauo8627/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 21 * * *' && github.repository == 'hauo8627/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 22 * * *' && github.repository == 'hauo8627/dockerstack-s3proxy')
+      ||
+      (github.event_name == 'schedule' && github.event.schedule == '3 23 * * *' && github.repository == 'hauo8627/dockerstack-s3proxy')
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      # ── Step 1: Pull .env + credentials from RTDB ─────────────
-      - name: Pull .env & credentials from RTDB
-        shell: bash
-        run: bash .github/scripts/pull-env.sh
-
-      # ── Step 2: Detect OS → append vars to .env ───────────────
-      - name: Detect OS environment
-        shell: bash
-        run: dotenvrtdb -e .env -- bash .github/scripts/detect-os.sh
-
-      # ── Step 3: OS-specific setup ─────────────────────────────
-      - name: Setup environment (Linux)
-        if: runner.os == 'Linux'
-        shell: bash
-        run: dotenvrtdb -e .env -- bash .github/scripts/setup-linux.sh
-
-      - name: Setup environment (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: .github/scripts/setup-windows.ps1
-
-      # ── Step 4: Validate config ────────────────────────────────
-      - name: Validate env
-        shell: bash
-        run: dotenvrtdb -e .env -- node docker-compose/scripts/validate-env.js
-
-      # ── Step 5: Deploy via dc.sh ──────────────────────────────
-      - name: Build & start services (Linux)
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          bash docker-compose/scripts/dc.sh up -d --build --remove-orphans
-
-      - name: Build & start services (Windows/WSL2)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $wsl = $env:WSL_WORKSPACE
-          wsl -d Ubuntu -- bash -c "cd '$wsl' && bash docker-compose/scripts/dc.sh up -d --build --remove-orphans"
-
-      # ── Step 6: Cleanup + keepalive ───────────────────────────
-      - name: Clean up unused images (Linux)
-        if: runner.os == 'Linux'
-        shell: bash
-        run: docker image prune -f
-
-      - name: Clean up unused images (Windows/WSL2)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $wsl = $env:WSL_WORKSPACE
-          wsl -d Ubuntu -- bash -c "cd '$wsl' && sudo docker image prune -f"
-
-      - name: dotenvrtdb runner keepalive
-        shell: bash
-        run: |
-          dotenvrtdb -e .env -- dotenvrtdb runner set-stoprunnerid
-          dotenvrtdb -e .env -- dotenvrtdb runner keepalive
-
-      # ── Step 7: Collect artifacts (always) ────────────────────
-      - name: Collect docker runtime artifacts (Linux)
-        if: always() && runner.os == 'Linux'
-        shell: bash
-        run: bash .github/scripts/collect-artifacts.sh
-
-      - name: Collect docker runtime artifacts (Windows/WSL2)
-        if: always() && runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $wsl = $env:WSL_WORKSPACE
-          if (-not $wsl) { Write-Host "WSL_WORKSPACE not set, skipping"; exit 0 }
-          wsl -d Ubuntu -- bash -c "cd '$wsl' && bash .github/scripts/collect-artifacts.sh"
-
-      - name: Upload docker runtime artifacts
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: docker-runtime
-          path: artifacts/docker-runtime
-          if-no-files-found: warn
-          retention-days: 7
+      - uses: actions/checkout@v6
+      - uses: ./.github/runs
