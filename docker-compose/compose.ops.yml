@@ -26,7 +26,7 @@ services:
   dozzle:
     profiles: [dozzle]
     # image: amir20/dozzle:v10.3.3
-    image: amir20/dozzle::latest
+    image: amir20/dozzle:latest
     pull_policy: missing
     volumes:
       - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock:ro
