@@ -142,3 +142,4 @@ Ghi chú:
 - `docs/services/filebrowser.md`
 - `docs/services/webssh.md`
 - `docs/services/tailscale.md`
+- `docs/services/consul.md`

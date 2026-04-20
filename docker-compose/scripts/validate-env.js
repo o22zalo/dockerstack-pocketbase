@@ -151,6 +151,13 @@ checkOptional("LITESTREAM_INIT_MODE", "first-run bootstrap mode", (v) =>
 checkOptional("LITESTREAM_S3_PATH", "path prefix in bucket");
 checkOptional("DOCKER_VOLUMES_ROOT", "host bind-mount root path");
 checkOptional("DOCKER_SOCK", "docker socket path override");
+checkOptional("CONSUL_FIREBASE_ENABLE", "bật/tắt consul lease + readonly standby", (v) =>
+  isBool(v) ? null : "must be true|false"
+);
+checkOptional("CONSUL_GATEWAY_PORT", "consul gateway port", (v) => {
+  const n = Number(v);
+  return Number.isInteger(n) && n > 0 && n <= 65535 ? null : "must be integer 1..65535";
+});
 
 // 3) Feature flags
 for (const key of ["ENABLE_DOZZLE", "ENABLE_FILEBROWSER", "ENABLE_WEBSSH", "ENABLE_TAILSCALE"]) {
@@ -161,6 +168,22 @@ for (const key of ["ENABLE_DOZZLE", "ENABLE_FILEBROWSER", "ENABLE_WEBSSH", "ENAB
   }
   if (!isBool(v)) errors.push(`${key} must be true|false`);
   else ok.push(`${key}=${v}`);
+}
+
+if ((env.CONSUL_FIREBASE_ENABLE || "false") === "true") {
+  checkRequired("CONSUL_FIREBASE_URL", "required when consul firebase enabled", (v) => {
+    if (!isValidHttpsJsonUrl(v)) return "must be https URL ending with .json";
+    return null;
+  });
+  checkOptional("CONSUL_FIREBASE_SSE_ENABLE", "listen firebase SSE in real-time", (v) =>
+    isBool(v) ? null : "must be true|false"
+  );
+  checkOptional("CONSUL_LOST_LEASE_EXIT", "exit process when lost lease (hard fencing)", (v) =>
+    isBool(v) ? null : "must be true|false"
+  );
+  checkOptional("CONSUL_STANDBY_ALLOW_API_READONLY", "allow GET/HEAD /api/* on standby", (v) =>
+    isBool(v) ? null : "must be true|false"
+  );
 }
 
 // 4) Files required by cloudflared mounts

@@ -88,3 +88,11 @@ PocketBase lưu tất cả vào `pb_data/`:
 - `storage/` — file uploads (không replicate, cần backup riêng nếu cần)
 
 Nếu cần backup `storage/`, có thể dùng rclone hoặc mount S3 bucket trực tiếp cho thư mục uploads.
+
+## Consul Firebase lease + standby read-only
+
+- Khi `CONSUL_FIREBASE_ENABLE=true`, traffic public/internal được route vào `consul-gateway` trước khi tới app.
+- `consul-gateway` dùng lease Firebase để xác định role:
+  - `writer`: cho phép đủ method.
+  - `standby`: chỉ cho phép `GET`/`HEAD` cho `/api/*`.
+- Tham khảo chi tiết vận hành ở `docs/services/consul.md`.

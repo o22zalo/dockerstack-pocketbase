@@ -61,15 +61,6 @@ services:
       # pb_data chứa data.db, logs.db, storage (file uploads), migrations
       - ${DOCKER_VOLUMES_ROOT:-./.docker-volumes}/app/pb_data:/pb/pb_data
 
-    labels:
-      # Public HTTP via Cloudflare Tunnel
-      - "caddy=http://${PROJECT_NAME}.${DOMAIN}, http://main.${DOMAIN}, http://${DOMAIN}, http://${PROJECT_NAME_TAILSCALE}.${TAILSCALE_TAILNET_DOMAIN}"
-      - "caddy.reverse_proxy={{upstreams ${APP_PORT:-8090}}}"
-      # Internal HTTPS via Tailscale
-      - "caddy_1=https://${PROJECT_NAME_TAILSCALE:-myapp}.${TAILSCALE_TAILNET_DOMAIN:-tailnet.local}"
-      - "caddy_1.tls=internal"
-      - "caddy_1.reverse_proxy={{upstreams ${APP_PORT:-8090}}}"
-
     networks: [app_net]
     restart: unless-stopped
 
@@ -86,3 +77,46 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+
+  consul-gateway:
+    image: "${PROJECT_NAME:-myapp}-consul-gateway:local"
+    build:
+      context: .
+      dockerfile: services/consul-gateway/Dockerfile
+    env_file:
+      - ./.env
+    environment:
+      CONSUL_GATEWAY_PORT: "${CONSUL_GATEWAY_PORT:-18090}"
+      CONSUL_UPSTREAM_URL: "http://app:${APP_PORT:-8090}"
+      CONSUL_FIREBASE_ENABLE: "${CONSUL_FIREBASE_ENABLE:-false}"
+      CONSUL_FIREBASE_URL: "${CONSUL_FIREBASE_URL:-}"
+      CONSUL_NODE_ID: "${CONSUL_NODE_ID:-${PROJECT_NAME:-myapp}-${HOSTNAME:-node}}"
+      CONSUL_LEASE_TTL_MS: "${CONSUL_LEASE_TTL_MS:-70000}"
+      CONSUL_LEASE_RENEW_MS: "${CONSUL_LEASE_RENEW_MS:-15000}"
+      CONSUL_LEASE_POLL_MS: "${CONSUL_LEASE_POLL_MS:-10000}"
+      CONSUL_FIREBASE_SSE_ENABLE: "${CONSUL_FIREBASE_SSE_ENABLE:-true}"
+      CONSUL_LOST_LEASE_EXIT: "${CONSUL_LOST_LEASE_EXIT:-false}"
+      CONSUL_STANDBY_ALLOW_API_READONLY: "${CONSUL_STANDBY_ALLOW_API_READONLY:-true}"
+    labels:
+      # Public HTTP via Cloudflare Tunnel
+      - "caddy=http://${PROJECT_NAME}.${DOMAIN}, http://main.${DOMAIN}, http://${DOMAIN}, http://${PROJECT_NAME_TAILSCALE}.${TAILSCALE_TAILNET_DOMAIN}"
+      - "caddy.reverse_proxy={{upstreams ${CONSUL_GATEWAY_PORT:-18090}}}"
+      # Internal HTTPS via Tailscale
+      - "caddy_1=https://${PROJECT_NAME_TAILSCALE:-myapp}.${TAILSCALE_TAILNET_DOMAIN:-tailnet.local}"
+      - "caddy_1.tls=internal"
+      - "caddy_1.reverse_proxy={{upstreams ${CONSUL_GATEWAY_PORT:-18090}}}"
+    networks: [app_net]
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - "CMD"
+        - "wget"
+        - "-qO-"
+        - "http://localhost:${CONSUL_GATEWAY_PORT:-18090}/__consul/status"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
