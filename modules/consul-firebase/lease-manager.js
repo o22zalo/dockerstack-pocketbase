@@ -152,7 +152,9 @@ class FirebaseLeaseManager extends EventEmitter {
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), this.requestTimeoutMs);
     try {
-      const res = await fetch(withQuery(this.leaseUrl, { print: 'silent' }), {
+      // Firebase RTDB không cho phép trộn conditional headers (if-match/if-none-match)
+      // với các query params như print=... hoặc shallow=...
+      const res = await fetch(this.leaseUrl, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
