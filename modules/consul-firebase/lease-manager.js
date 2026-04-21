@@ -67,16 +67,32 @@ class FirebaseLeaseManager extends EventEmitter {
     this._stopped = false;
   }
 
+  leaseBrief(lease = this.currentLease) {
+    if (!lease || typeof lease !== 'object') return 'empty';
+    const owner = lease.ownerId || 'n/a';
+    const expiresAt = Number(lease.expiresAt || 0);
+    const renewedAt = Number(lease.renewedAt || 0);
+    return `owner=${owner}, expiresAt=${expiresAt}, renewedAt=${renewedAt}`;
+  }
+
+  emitState(tag, detail) {
+    const role = this.isWriter ? 'writer' : 'standby';
+    this.emit('info', `[lease][state][${tag}] role=${role}, self=${this.ownerId}, lease={${this.leaseBrief()}}${detail ? `, ${detail}` : ''}`);
+  }
+
   async start() {
     if (!this.enabled) {
       this.emitRole(true, 'CONSUL_FIREBASE_ENABLE=false');
+      this.emitState('start', 'firebase lease disabled');
       return;
     }
+    this.emitState('start', 'begin lease negotiation');
     try {
       await this.refreshLease('start');
     } catch (err) {
       this.emit('warn', `[lease][start] ${err.message}. tạm chạy standby và retry theo chu kỳ.`);
       this.emitRole(false, 'start failed');
+      this.emitState('start-failed', 'fallback standby + periodic retry');
     }
     this._renewTimer = setInterval(() => {
       this.refreshLease('renew-tick').catch((err) => this.emit('warn', `[lease][renew] ${err.message}`));
@@ -108,6 +124,7 @@ class FirebaseLeaseManager extends EventEmitter {
       ownerId: this.ownerId,
       lease: this.currentLease
     });
+    this.emitState('role-change', `reason=${reason}`);
   }
 
   makeLeasePayload(nowMs) {
@@ -183,6 +200,7 @@ class FirebaseLeaseManager extends EventEmitter {
 
     const allowPreempt = reason === 'start' && this.takeoverOnJoin;
     if (!this.canTakeOver(data, nowMs) && !allowPreempt) {
+      this.emit('info', `[lease][${reason}] local=${this.ownerId} cannot take lease, current=${this.leaseBrief(data)} -> standby/read-only`);
       this.emitRole(false, `${reason}: lease đang thuộc owner khác`);
       return;
     }
@@ -190,12 +208,14 @@ class FirebaseLeaseManager extends EventEmitter {
     const payload = this.makeLeasePayload(nowMs);
     const ok = await this.writeLease(etag, payload);
     if (!ok) {
+      this.emit('info', `[lease][${reason}] optimistic write failed (412), another node won lease -> standby/read-only`);
       this.emitRole(false, `${reason}: lease race (412)`);
       return;
     }
 
     this.currentLease = payload;
     this.lastRenewedAt = nowMs;
+    this.emit('info', `[lease][${reason}] lease write success -> writer, lease={${this.leaseBrief(payload)}}`);
     this.emitRole(true, allowPreempt ? `${reason}: preempted lease on join` : `${reason}: lease renewed`);
   }
 
@@ -206,14 +226,17 @@ class FirebaseLeaseManager extends EventEmitter {
     this.currentLease = data;
 
     if (!data || typeof data !== 'object') {
+      this.emit('info', `[lease][${reason}] lease empty -> standby/read-only`);
       this.emitRole(false, `${reason}: lease rỗng`);
       return;
     }
 
     if (data.ownerId === this.ownerId && Number(data.expiresAt || 0) > nowMs) {
+      this.emit('info', `[lease][${reason}] lease confirms local owner=${this.ownerId} -> writer`);
       this.emitRole(true, `${reason}: lease xác nhận owner local`);
       return;
     }
+    this.emit('info', `[lease][${reason}] detected active leader owner=${data.ownerId || 'n/a'} (self=${this.ownerId}) -> standby/read-only`);
     this.emitRole(false, `${reason}: owner active khác`);
   }
 

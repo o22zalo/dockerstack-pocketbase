@@ -35,6 +35,7 @@ const leaseManager = new FirebaseLeaseManager({
 });
 
 leaseManager.on('warn', (msg) => console.warn(`[consul] ${msg}`));
+leaseManager.on('info', (msg) => console.log(`[consul] ${msg}`));
 leaseManager.on('role', (evt) => {
   const prev = role;
   role = evt.role;
@@ -68,6 +69,10 @@ function sendJson(res, status, data) {
     'X-Consul-Role': role
   });
   res.end(body);
+}
+
+function currentModeLabel() {
+  return role === 'writer' ? 'leader-writer' : 'standby-read-only';
 }
 
 function proxyRequest(clientReq, clientRes) {
@@ -108,6 +113,7 @@ function proxyRequest(clientReq, clientRes) {
 
 const server = http.createServer((req, res) => {
   if ((req.url || '').startsWith('/__consul/status')) {
+    console.log(`[consul] [status] mode=${currentModeLabel()}, method=${req.method}, path=${req.url}`);
     return sendJson(res, 200, {
       ok: true,
       upstream: UPSTREAM,
@@ -117,6 +123,7 @@ const server = http.createServer((req, res) => {
   }
 
   if (shouldBlock(req)) {
+    console.warn(`[consul] [readonly-enforce] mode=${currentModeLabel()}, blocking method=${req.method}, path=${req.url}`);
     return sendJson(res, 503, {
       error: 'standby_readonly',
       message: 'Node đang ở standby. Chỉ cho phép GET/HEAD ở /api/*.',
@@ -133,6 +140,7 @@ async function main() {
   await leaseManager.start();
   server.listen(PORT, () => {
     console.log(`[consul] gateway listening on :${PORT}, upstream=${UPSTREAM}, enabled=${ENABLED}`);
+    console.log(`[consul] startup mode=${currentModeLabel()}, ownerId=${OWNER_ID}, readonly_api=${STANDBY_ALLOW_API_READONLY}`);
   });
 }
 
